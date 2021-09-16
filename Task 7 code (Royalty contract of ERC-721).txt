@@ -1,0 +1,145 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity 0.8.0;
+
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721.sol';
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/IERC721.sol';
+
+contract MoizERC721Token is ERC721 {
+    
+    address public Artist;
+    uint256 public royalty_amount;
+   mapping(address => bool) public excludedList;
+     
+    // constructor (address _artist, uint256 _royalty_amount) ERC721 ("LEO_Coin","LC")
+    // {   
+    //     Artist=_artist;
+    //     //royalty_amount=_royalty_amount;
+    //     //excludedList[Artist]=true;
+    //     _mint(_artist,1);
+    //   // _contractOwner=msg.sender;
+    // }
+    
+    constructor ( ) ERC721 ("LEO_Coin","LC"){
+        _mint(msg.sender,1);
+       Artist=msg.sender;
+        
+    }
+    
+    // /// function to mint Tokens
+     function mint(address to , uint tokenID) public {
+        
+          _safeMint(to,tokenID);
+        
+     }
+     
+     
+    function safeTransferFrom(
+    address from,
+    address to,
+    uint256 tokenId,
+    bytes memory _data,
+    uint price
+  ) public override {
+    require(
+      _isApprovedOrOwner(_msgSender(), tokenId), 
+      'ERC721: transfer caller is not owner nor approved'
+    );
+    if(excludedList[from] == false) {
+      _payTxFee(from, price);
+    }
+    _safeTransfer(from, to, tokenId, _data);
+  }
+
+  function _payTxFee(address from, uint price) internal {
+    //MoizERC721Token ob= (_OGTokenOjectaddress);
+    transferFrom(from, Artist, price);
+  }
+         /// function to check the current  contract ether balance.         
+function _checkContractEtherBalance() public view returns (uint256)
+      {
+          return address(Artist).balance; 
+    
+      }
+}// end of the contract
+
+
+contract Approved_Seller {
+    
+    address public Artist;
+    uint256 public royalty_amount;
+    mapping(address => bool) public excludedList;
+
+   
+    MoizERC721Token ob;
+    constructor(address _OGTokenaddress, address _artist,uint256 _royalty_amount){
+        Artist=_artist;
+        royalty_amount=_royalty_amount/100;
+        excludedList[Artist]=true;
+        ob=MoizERC721Token(_OGTokenaddress);
+        
+    }
+    
+    
+    // function mintTokens (uint256 _tokenID) external payable{
+               
+    //             ob.mint(msg.sender,_tokenID);
+    // }
+    
+    // function setExcludeAddresses(address exclude, bool status, uint tokenID) external{
+    //     require(msg.sender== ob.ownerOf(tokenID)," only owner of token can exclude specific addresses");
+    //     excludedList[exclude]=status;
+        
+        
+    // }
+    
+    function setExcludeAddresses(address exclude, bool status) external{
+        require(msg.sender== Artist," only owner of token can exclude specific addresses");
+        excludedList[exclude]=status;
+        
+        
+    }
+    
+    // function transferTokenFromOwner (address to, uint _tokenID) payable external
+    // {     
+    //         require(msg.value== 5 ether,"should be equal to 5.");
+        
+    //         address _OwnerOFToken = ob.ownerOf(_tokenID);
+    //     ob.safeTransferFrom(_OwnerOFToken,to,_tokenID);
+    //   payable (_OwnerOFToken).transfer(address(this).balance );
+       
+    // }
+    
+     function transferToken(address from,address to, uint _tokenID) payable external
+    {     
+        if(from==Artist){
+            require(msg.value== 5 ether,"should be equal to 5.");
+            address _OwnerOFToken = ob.ownerOf(_tokenID);
+        ob.safeTransferFrom(_OwnerOFToken,to,_tokenID,'');
+       payable (_OwnerOFToken).transfer(address(this).balance );
+        }
+         else{
+                 uint price = msg.value*royalty_amount;
+                 ob.safeTransferFrom(from, to, _tokenID,'',price);
+         }
+       
+    }
+    
+    function checkBalanceofTokens(address checkaddress)  view external returns(uint256)
+    {
+       
+       return ob.balanceOf(checkaddress);
+        
+    }
+    
+    function OwnerOFToken(uint256 tokenID) view external returns(address)
+    {
+        address _OwnerOFToken = ob.ownerOf(tokenID);
+        return _OwnerOFToken;
+    }
+    
+     function _payTxFee(address from, uint price) internal {
+    //MoizERC721Token ob= (_OGTokenOjectaddress);
+    ob.transferFrom(from, Artist, price);
+  }
+    
+}//end of contract

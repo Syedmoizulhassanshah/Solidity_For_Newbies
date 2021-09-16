@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity 0.8.0;
+
+contract Data{
+    
+    struct student{                           // student structure
+        string name;
+        string staddress;
+        uint phNum;
+        uint rollNum;
+        string DOB;
+        string year;
+        uint sem;
+        string CGPA;
+        string Uniname;
+    }
+
+    mapping(address=>student) public studentdata; // studentdata mapping 
+    
+    student public s1; // struct object
+    address [] studentaddress; // array for storing studentaddresses
+    uint public studentCount = 0; // state level variable to check student count
+    
+    //function to add students
+    function addstudent (string memory _name,string memory  _address, uint _phNum, uint _rollNum, string memory  _DOB, string memory _year, uint _sem, string memory _CGPA, string memory _Uniname) public  {
+        
+        s1 = student( _name,_address,_phNum,_rollNum,_DOB,_year,_sem,_CGPA,_Uniname); // student struct object
+        studentdata[msg.sender] = s1;   // mapping student data against address
+        studentaddress.push(msg.sender); // pushing address that mapped student in the array as index.
+        studentCount++; // increasing student count
+        
+    }
+    ///function to read student data
+     function getstudent (uint index) public view returns (string memory,string  memory,  uint , uint, string memory ,string memory, uint, string memory, string memory){
+          uint i = index;
+          return (studentdata[studentaddress[i]].name,studentdata[studentaddress[i]].staddress,studentdata[studentaddress[i]].phNum,studentdata[studentaddress[i]].rollNum,studentdata[studentaddress[i]].DOB,
+                              studentdata[studentaddress[i]].year,
+                              studentdata[studentaddress[i]].sem,
+                              studentdata[studentaddress[i]].CGPA,
+                              studentdata[studentaddress[i]].Uniname);
+     }
+ }

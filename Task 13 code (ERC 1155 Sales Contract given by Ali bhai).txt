@@ -1,0 +1,89 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.0;
+
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC1155/ERC1155.sol';
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC1155/IERC1155.sol';
+
+contract MoizERC1155Token is ERC1155 {
+    
+     mapping(uint256 => address) internal _owners; // mapping to map the address aginst the unique token id. 
+    
+    address _contractOwner;
+    string TokenName="LeoToken";
+    string TokenDymbol="LEO";
+    
+    uint256 public FungibleTokenID=0;
+    uint256 public NFT_1_ID=1;
+    uint256 public NFT_2_ID=2;
+    
+    constructor () ERC1155 ("")
+    {
+    
+      _contractOwner=msg.sender;
+    }
+    
+    // function to mint coins both fungible and non-fungible tokens
+     
+     function mint(uint256 amount ,uint256 tokenID) public {
+        require( _contractOwner == msg.sender,"You are not allowed to call this function, only the contract owner can mint tokens");
+          _mint(msg.sender, tokenID, amount, "");    // calling the OpenZeppelin mint function
+          _owners[tokenID] = _contractOwner ;       // mapping the minted tokens against the owner's address
+     }
+     
+     function transferTokenFromOwner (uint _tokenID,uint256 _amount) payable external
+    {       
+         //require(_balances[_tokenID][ownerOf(_tokenID)]>_amount,"this much token are not present");
+         
+    if(msg.value <= address(msg.sender).balance && _amount==0)     
+    {
+        
+        
+        uint256 TokenAgaintEther= msg.value/0.1 ether;   // number of token to bhe given to user (1 token == 0.1 ether).
+        
+        address OwnerOFToken = ownerOf(_tokenID);
+        _safeTransferFrom(OwnerOFToken,msg.sender,_tokenID,TokenAgaintEther," ");
+       payable (OwnerOFToken).transfer(address(this).balance); // transfer the balance recived in ether to fungible-token owner's address
+         }//end of if 
+    
+        else if(_amount == 20 ){
+            
+             _safeTransferFrom(msg.sender,_contractOwner,_tokenID,_amount," "); // this statement will transfer the fungible tokens send by the NFT buyer to the contract owner address
+             _tokenID=1; // setting the id to 1 so that NFT_1 should be send;
+             address OwnerOFToken = ownerOf(_tokenID);
+         _safeTransferFrom(OwnerOFToken,msg.sender,_tokenID,balanceOf(ownerOf(_tokenID),_tokenID)," ");  // this statement will transfer the non-fungible tokens from the owner's address to the buyer's address
+       //payable (OwnerOFToken).transfer(address(this).balance); 
+            
+        }
+        
+         else if(_amount == 30 ){
+            
+             _safeTransferFrom(msg.sender,_contractOwner,_tokenID,_amount," "); // this statement will transfer the fungible tokens send by the NFT buyer to the contract owner address
+             _tokenID=2; // setting the id to 2 so that NFT_22 should be send;
+             address OwnerOFToken = ownerOf(_tokenID);
+         _safeTransferFrom(OwnerOFToken,msg.sender,_tokenID,balanceOf(ownerOf(_tokenID),_tokenID)," "); // this statement will transfer the non-fungible tokens from the owner's address
+      // payable (OwnerOFToken).transfer(address(this).balance);
+            
+        }
+    }
+    
+         /// function to check the current  contract ether balance.         
+     function _checkContractEtherBalance() public view returns (uint256)
+      {
+          return address(this).balance; ///function that sends ether using "transfer" instead of sender as it shows exception
+    
+      }
+     
+ 
+       //function to keep track of the owners of the token.
+     
+     function ownerOf(uint256 tokenId) public view returns (address) {
+        address ownerOFToken = _owners[tokenId];
+        require(ownerOFToken != address(0), "ERC1155: owner query for nonexistent token");
+        return ownerOFToken;
+    }
+}// end of the contract
+
+
+
+
+

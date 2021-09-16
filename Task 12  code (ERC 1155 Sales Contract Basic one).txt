@@ -1,0 +1,82 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.0;
+
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC1155/ERC1155.sol';
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC1155/IERC1155.sol';
+
+contract MoizERC1155Token is ERC1155 {
+     mapping(uint256 => address) internal _owners;
+    
+    address _contractOwner;
+    string TokenName="LeoToken";
+    string symbol="LEO";
+    
+    constructor () ERC1155 ("")
+    {
+       _mint(msg.sender,0,1, "");
+       _contractOwner=msg.sender;
+    }
+    
+    /// function to mint coins
+     function mint(address to, uint256 amount ,uint256 tokenID) public {
+        //require( msg.sender== _contractOwner,"You are not allowed to call this function");
+           _mint(to, tokenID, amount, "");
+           _owners[tokenID] = to;
+     }
+     
+   
+         /// function to check the current  contract ether balance.         
+     function _checkContractEtherBalance() public view returns (uint256)
+      {
+          return address(this).balance; ///function that sends ether using "transfer" instead of sender as it shows exception
+    
+      }
+     
+     //khud banaya
+     function ownerOf(uint256 tokenId) public view returns (address) {
+        address ownerOFToken = _owners[tokenId];
+        require(ownerOFToken != address(0), "ERC1155: owner query for nonexistent token");
+        return ownerOFToken;
+    }
+}// end of the contract
+
+
+
+
+contract Approved_Seller {
+    
+    
+    mapping(uint256 => mapping(address => uint256)) private _balances;
+    
+    // address contractOwner;
+    
+    MoizERC1155Token ob;
+    
+    constructor(address _address){
+      //  contractOwner=msg.sender;
+        ob=MoizERC1155Token(_address);
+        
+    }
+    
+    
+    function transferTokenFromOwner (address to, uint _tokenID,uint256 _amount) payable external
+    {       
+            //require(ob._balances[_tokenID][ownerOf(_tokenID)]>_amount,"this much token are not present");
+            require(msg.value == 5 ether,"should be equal to 5 ether.");
+        
+         address OwnerOFToken = ob.ownerOf(_tokenID);
+        ob.safeTransferFrom(OwnerOFToken,to,_tokenID,_amount," ");
+       payable (OwnerOFToken).transfer(address(this).balance);
+       
+    }
+    
+    function checkBalanceofTokens(address checkaddress, uint256 _tokenID)  view external returns(uint256)
+    {
+       
+       return ob.balanceOf(checkaddress, _tokenID);
+        
+    }
+    
+   
+    
+}//end of contract

@@ -1,0 +1,54 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity 0.8.0;
+
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol';
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol';
+
+contract MyERC20Token is ERC20
+{
+   address _contractOwner;
+   
+   
+   constructor() ERC20 ("LEO", "MIZ"){
+       _mint(msg.sender,1000);
+       _contractOwner=msg.sender;
+   }
+   
+     //function to check the current  contract ether balance.         
+function _checkContractEtherBalance() public view returns (uint256)
+      {
+          return address(this).balance; ///function that sends ether using "transfer" instead of sender as it shows exception
+    
+      }
+
+  }// end  of contract
+
+
+contract Salesperson_Token 
+   {
+    MyERC20Token obj;  // made an instance of the above owner  contract
+    constructor(address _address){
+        obj = MyERC20Token (_address);
+        
+   }
+
+/*function for buytokens after sending ether,here i have defined that 1 ether=10 tokens, so. 0.1 ether=1tokens.
+ so if i here recieve 1 ether in the msg.value then the recipient will recieve 10 ethers against it. in*/
+
+function buytokens (address sender, address recipient) external payable 
+    {
+         uint256 _tokenvalue=msg.value/0.1 ether;
+        obj.transferFrom(sender,recipient,_tokenvalue); //function making the token tranfer.
+    
+    }
+    
+    //function to check the current  contract ether balance.
+
+function _checkContractEtherBalance() public view returns (uint256)
+      {
+          return address(this).balance; ///function that sends ether using "transfer" instead of sender as it shows exception
+    
+      }
+
+       
+   }// end of contract

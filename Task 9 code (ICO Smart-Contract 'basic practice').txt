@@ -1,0 +1,47 @@
+                                           // ERC20 token Contract
+
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.4.24;
+
+import 'https://github.com/ConsenSysMesh/openzeppelin-solidity/blob/master/contracts/token/ERC20/StandardToken.sol';
+
+
+contract LeoToken is StandardToken{
+    string public constant symbol = 'LEO';
+    string public constant Name = 'LeoToken';
+    uint256 public constant decimal = 18;
+    
+    uint256 internal constant tokenUnit  = 10**18;
+    uint256 internal constant OneBillion  = 10**9;
+    uint256 internal constant maxTokens  = 2*OneBillion*tokenUnit;
+    
+    constructor() public{
+        totalSupply_ = maxTokens;
+        balances[msg.sender]=maxTokens;
+    }
+}
+
+
+                                       //ICO Contract
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.4.24;
+
+import 'https://github.com/ConsenSysMesh/openzeppelin-solidity/blob/master/contracts/crowdsale/validation/CappedCrowdsale.sol';
+import 'https://github.com/ConsenSysMesh/openzeppelin-solidity/blob/master/contracts/crowdsale/Crowdsale.sol';
+
+
+
+contract ICO is CappedCrowdsale {
+    
+    
+    uint256 internal constant ethCap = 1000 ether;
+    uint256 internal constant oneEthToToken = 100000;
+    
+    
+    constructor(address _wallet, ERC20 _token) public Crowdsale (oneEthToToken,_wallet, _token) CappedCrowdsale(ethCap)
+    {
+        
+    }
+}
+
+

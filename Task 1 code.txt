@@ -1,0 +1,24 @@
+
+pragma solidity 0.8.0;
+
+contract transfer {
+    
+    
+   
+    function recieveEther(uint256 amount) payable public  { /// function that recieves ether
+        require(msg.value>=amount);
+        
+                                        
+    }  
+    
+    function sendEther() payable public  {   
+         
+        payable (msg.sender).transfer(address(this).balance); ///function that sends ether using "transfer" instead of sender as it shows exception
+    }
+    
+    function checkBalance() public view returns (uint256 ) { // function to check the balance of the smart contract after it recieves ether or send ether.
+         return address(this).balance;    
+                            
+
+    }
+}

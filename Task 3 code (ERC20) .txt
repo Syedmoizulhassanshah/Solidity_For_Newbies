@@ -1,0 +1,128 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.0;
+
+interface interface_ERC20{            /// interface for overriding and using in different contracts by importing it.
+    
+    function totalSupply() external view returns(uint256);
+    function balanceOf(address _account) external view returns(uint256);
+    function transfer(address _recipient, uint256 _numTokens) external returns (bool);
+    
+    //event Transfer(address indexed from, address  indexed  to, uint256 amount);
+      
+    
+}
+
+contract ERC20token is interface_ERC20 {   /// Token contract which is inherited from "interface_ERC20".    
+
+    string public _tokenName;
+    string public _tokenSymbol;
+    uint16 public _tokenDecimal;
+    uint256 private _totalSupply;
+    address _ContractOwner;
+    
+    event Transfer(address indexed _from, address indexed _to, uint tokens);   //// Transfer event as mentioned in ERC20 standard for the interface logging
+    event Approval(address tokenOwner, address spender, uint tokens);   ////
+     
+    mapping(address => uint256) balances;   //// mapping for storing tokens amount against specific addresses.
+    mapping(address => mapping(address => uint256)) allowed;  ///nested mapping for allowance functionality of the contract.
+    
+    
+    /// constructor for initialing  values
+    
+    constructor (string memory tokenName, string memory tokenSymbol, uint16 tokenDecimal, uint256 totalSupply_ ){  
+           balances[msg.sender]=totalSupply_; 
+           _tokenName=tokenName;
+           _tokenSymbol=tokenSymbol;
+           _tokenDecimal=tokenDecimal;
+           _totalSupply=totalSupply_;
+           
+          _ContractOwner=msg.sender;
+        
+        }    
+    
+    
+    /// function to check the totalSupply of the tokens.
+    
+    function totalSupply() public view override returns(uint256)
+     {
+         return _totalSupply;
+     }
+     
+     ///function to check the balance of the tokens in the passed address ,before and after transfer. 
+     
+    function balanceOf(address _account) public view override returns(uint256)
+    {
+      return balances[_account];   
+    }
+    
+    ///function to transfer the tokens from the owner to the recipient along with the amount of token to be supplied.
+    
+    function transfer(address _recipient, uint256 _numTokens) public  override returns (bool)
+    {
+        require(_numTokens<=balances[msg.sender] ,"The number of tokens entered for transfer should be less than the current tokens in the msg.sender Account.");
+        balances[msg.sender] -= _numTokens;  /// deducts the token passed for Transfer from the owners account.
+        balances[_recipient] += _numTokens; /// increases the token amount in the recipient's account  by the amount passed.
+        emit Transfer(msg.sender,_recipient,_numTokens);  /// emits an event that is logged by the user interfaces 
+        return true;
+        
+    } 
+    
+    /// function used for validation , that only owner of the contract can mint (add) tokens. 
+    
+    modifier onlyContractOwner(){
+        require(msg.sender == _ContractOwner," Only contract owner can increase the token supply by calling this mint funtion." );
+        _;
+    }
+    
+    /// function for  minting (adding) new tokens in the supply.
+    
+    function mintTokens(uint256 _newtokensQty) public onlyContractOwner returns (uint256) {
+        _totalSupply += _newtokensQty; /// adding the passed amount into the totalSupply.
+        balances[msg.sender] += _newtokensQty;  /// increasing the amount of tokens in the contract owner's account as well.
+        
+        return _totalSupply;
+        
+    }
+    /// function to burn the supplied amount of tokens from the totalsupply and calling account
+    
+    function burnTokens(uint256 _burntokensQty) public onlyContractOwner returns (uint256) {
+       require(_burntokensQty<=balances[msg.sender],"The entered token burning amount is greater then the current token balance in the msg.sender Account");
+        _totalSupply -= _burntokensQty;   /// decreasing the passed amount of tokens from the totalsupply
+        balances[msg.sender] -= _burntokensQty;   /// decreasing the passed amount of tokens from the calling account.
+         
+        return _totalSupply;
+        
+    }
+    
+    /* function for spending token/money from the owners account who gave you the permission for it, rather then transfering it into your 
+    account and then spending it,directly spend it from their account with their permission.*/ 
+    
+    /*here the spender can spend according to his needs*/
+    
+    /// this function tells how much tokens are left after the spender has spend the approved amount (by the owner).
+    function allowance(address _owner, address _spender ) public view  returns (uint256)
+    {
+        return allowed[_owner][_spender]; /// it returns the amount of tokens the owner has allowed the spender to spend after they have spend it.
+    }
+    
+    /*in this function the owner will approve a certain amount of tokens which a spender can spend*/
+    function approve(address _spender, uint256 _amount) public returns (bool)
+    {
+        allowed[msg.sender][_spender]=_amount; /// the owner allows the spender a certain amount of tokens to spend.
+        emit Approval(msg.sender,_spender,_amount);  /// an event name Approval will be emitted and recieved by the interfaces
+        return true;
+    }
+    
+    /// this function is run by the spender, whom owner has given the allowance
+    
+    function transferfFrom (address _from, address recipient, uint256 _numTokens) public returns (bool)
+    {
+        require(balances[_from] >= _numTokens && allowed[_from][msg.sender]>=_numTokens,"");
+        balances[_from] -= _numTokens; // deduct no. of token from owner's account by the passed value.
+        balances[recipient] += _numTokens; // increase the number of tokens in the recipient's account by the passed value. 
+        allowed[_from][msg.sender] -= _numTokens; // decrease the allowance of the sender that the owner allowed by the passed value 
+        emit Transfer(_from, recipient,_numTokens); // emit the transfer event now for the user to log it.
+        return true; 
+        
+    }
+} // end of contract

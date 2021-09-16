@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity ^0.8.0;
+
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC1155/ERC1155.sol';
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC1155/IERC1155.sol';
+
+contract LeoToken is ERC1155 {
+    address public governance;
+    uint256 public airlinecount;
+    string public name ="LeoToken";
+    string public symbol= "LEO";
+    
+    constructor(address _governance) ERC1155("")
+{
+     governance=_governance;
+     airlinecount=0;
+}    
+    
+    
+    modifier onlyGovernance (){
+        require(msg.sender==governance,"only Governance can add new airlines.");
+        _;
+    }
+    
+     function addNewAirline(uint256 initialSupply) external onlyGovernance {
+        airlinecount++;
+        uint256 airlineTokenClassId = airlinecount;
+
+        _mint(msg.sender, airlineTokenClassId, initialSupply, "");        
+    }
+    
+}//end of constract

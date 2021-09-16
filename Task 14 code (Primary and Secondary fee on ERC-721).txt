@@ -1,0 +1,81 @@
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity ^0.8.0;
+
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721.sol';
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/IERC721.sol';
+
+
+contract MarketPlace is ERC721{
+    
+    address MarketPlaceOwner;
+    mapping(uint256 => bool) internal hasSoldToken; // map the "tokenID" to its sold status "true/false". 
+    
+    constructor() ERC721("Leotoken","LEO")
+    {
+        MarketPlaceOwner = msg.sender;
+    }
+    
+     function mint(uint tokenID) public {
+        
+           _safeMint(msg.sender,tokenID);
+        
+     }
+     
+     function BuyTokens(uint256 _tokenId) payable external {
+         
+ /* works only if the token is being sold for the first time.*/         
+         if(hasSoldToken[_tokenId]== false && msg.value >= 5 ether)
+         {
+               hasSoldToken[_tokenId]=true;
+               address _OwnerOfToken=ownerOf(_tokenId);
+               uint256 _primaryFee = (msg.value* 10)/100; //10 percent commission of market place.
+               uint256 _PriceOFtokenAfterMarketPalaceCommission= (msg.value*90)/100; // 90 percent remaining value send to the owner of the NFT. 
+               _safeTransfer(_OwnerOfToken,msg.sender,_tokenId," ");
+                 
+               payable (_OwnerOfToken).transfer(_PriceOFtokenAfterMarketPalaceCommission);
+               primaryFee( _primaryFee); // calling the function to transfer the primary fee  to the market place. 
+           
+         }// end of if
+         
+
+// works only if the token is sold already and being resold. 
+         else if (hasSoldToken[_tokenId]==true && msg.value>= 5 ether)
+           {
+               
+               address _OwnerOfToken=ownerOf(_tokenId);
+                uint256 _SecondaryFee = (msg.value* 15)/100; //15 percent commission of market place when the token is resold.
+                uint256 _PriceOFtokenAfterMarketPalaceCommission= (msg.value*85)/100; // 85 percent remaining value send to the owner of the NFT. 
+               _safeTransfer(_OwnerOfToken,msg.sender,_tokenId," ");
+                 
+               payable (_OwnerOfToken).transfer(_PriceOFtokenAfterMarketPalaceCommission);
+               secondaryFee(_SecondaryFee); // calling the function to transf er the secondary fee to the market place.
+           } //end of  else-if
+         
+     }
+     
+     
+     // transfers primaryFee to the MarketPlaceOwner.
+     
+     function  primaryFee( uint256 _pcommission) public 
+     {
+         
+         payable (MarketPlaceOwner).transfer(_pcommission);
+         
+     }
+     
+     // transfers secondaryFee to the MarketPlaceOwner.
+     
+     function secondaryFee( uint256 _Scommission) public
+     {
+     
+         payable (MarketPlaceOwner).transfer(_Scommission);
+     }
+     
+     
+     
+    
+}// end of contract
+
+
+
