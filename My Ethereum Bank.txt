@@ -55,7 +55,7 @@ contract Simple_Ethereum_Bank{
     function RegisterUser (string memory name) public payable
     {
         require( msg.value > 0 ether,"User need to put something as stake to open the account");
-        Users memory newuser = Users( name, msg.value, false, block.timestamp+2678400);
+        Users memory newuser = Users( name, msg.value, false, block.timestamp+2678400);  // 2678400 is 31days in seconds.
         accounts[msg.sender] = newuser;
         useraddresses.push(payable(msg.sender));
         
